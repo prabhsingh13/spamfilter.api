@@ -1,6 +1,5 @@
-<<<<<<< HEAD
-# spamfilter.api
-=======
+# SpamFilter.api
+
 # 🚀 Instagram Spam Filter API
 
 This project provides an **API to check Instagram profile details**, including:
