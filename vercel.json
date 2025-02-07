@@ -1,5 +1,5 @@
 {
-  "public": "public",
+  "version": 2,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" }
   ]
