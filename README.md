@@ -38,12 +38,13 @@ npm install
 ### 3️⃣ Add Environment Variables
 Create a `.env` file in the root directory and add:
 ```env
-INSTAGRAM_API_KEY=your_api_key_here
+RAPIDAPI_KEY_1=your_first_api_key
+RAPIDAPI_KEY_2=your_second_api_key
 ```
 
 ### 4️⃣ Run Locally
 ```bash
-npm run dev
+vercel dev
 ```
 
 ---
@@ -59,8 +60,8 @@ GET https://spamfilter-api.vercel.app/api/checkProfile?username=instagram
 #### 📜 **Example Response:**
 ```json
 {
-  "success": true,
   "data": {
+    "username": "instagram",
     "is_private": false,
     "spam_follower_setting_enabled": false
   }
@@ -71,13 +72,15 @@ GET https://spamfilter-api.vercel.app/api/checkProfile?username=instagram
 
 ## 📂 Project Structure
 ```
-📦 spamfilter-api
+📦 spamfilter.api
  ┣ 📂 api
- ┃ ┗ 📜 checkProfile.js   # API route to check profile details
- ┣ 📜 .env.example        # Environment variables example
- ┣ 📜 package.json        # Dependencies & scripts
- ┣ 📜 vercel.json         # Vercel deployment config
- ┗ 📜 README.md           # Project documentation
+ ┃ ┗ 📜 checkProfile.js        # Main API endpoint
+ ┣ 📂 public
+ ┃ ┗ 📜 index.html             # UI for user input
+ ┣ 📜 .env                     # API keys
+ ┣ 📜 package.json             # Dependencies
+ ┣ 📜 vercel.json              # (optional) Vercel config
+ ┗ 📜 README.md                # Documentation
 ```
 
 ---
