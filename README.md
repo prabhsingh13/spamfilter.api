@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# spamfilter.api
-=======
 # 🚀 Instagram Spam Filter API
 
 This project provides an **API to check Instagram profile details**, including:
@@ -102,4 +99,3 @@ For queries or support, feel free to reach out:
 ---
 
 ⭐ **If you find this project useful, don't forget to give it a star on GitHub!** ⭐
->>>>>>> 4350741 (First Commit)
