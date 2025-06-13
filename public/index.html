@@ -3,13 +3,9 @@
 
 <head>
     <title>Spam-Filter Project</title>
-    <!-- Required meta tags -->
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-
-    <!-- Bootstrap CSS v5.2.1 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 </head>
 
 <body>
@@ -19,220 +15,123 @@
                 <div class="col-lg-7">
                     <div class="card shadow-sm p-3 bg-warning">
                         <div class="card-body">
-                            <div class="tab-content mt-3" id="orderTabsContent">
-                                <div class="tab-pane fade show active" id="new-order" role="tabpanel">
-                                    <form id="order-form" method="POST">
-                                        <fieldset class="border p-3 rounded">
-                                            <legend class="float-none w-auto px-2">Order Details</legend>
-                                            <div class="mb-3">
-                                                <label for="link" class="form-label">Link <i class="fas fa-info-circle"
-                                                        data-bs-toggle="popover" data-bs-trigger="hover"
-                                                        data-bs-content="Must be Public"></i></label>
-                                                <input type="text" class="form-control" id="link" name="link"
-                                                    placeholder="Account Must be Public" required>
-                                                <div id="link-error"></div>
-                                                <div id="link-success"></div>
-                                            </div>
-                                        </fieldset>
-                                    </form>
-                                </div>
-                            </div>
+                            <form id="order-form" method="POST">
+                                <fieldset class="border p-3 rounded">
+                                    <legend class="float-none w-auto px-2">Order Details</legend>
+                                    <div class="mb-3">
+                                        <label for="link" class="form-label">
+                                            Link <i class="fas fa-info-circle" data-bs-toggle="popover"
+                                                data-bs-trigger="hover" data-bs-content="Must be Public"></i>
+                                        </label>
+                                        <input type="text" class="form-control" id="link" name="link"
+                                            placeholder="Account Must be Public" required>
+                                        <div id="link-error" class="text-danger mt-2"></div>
+                                        <div id="link-success" class="text-success mt-2"></div>
+                                        <div id="link-loading" class="text-primary mt-2" style="display: none;">⏳
+                                            Checking, please wait...</div>
+                                    </div>
+                                </fieldset>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const linkInput = document.getElementById('link');
-    
-            function createDiv(id, className, text = '') {
-                let div = document.getElementById(id);
-                if (!div) {
-                    div = document.createElement('div');
-                    div.id = id;
-                    div.className = className;
-                    div.innerHTML = text;
-                    linkInput.parentNode.appendChild(div);
-                    console.log(`✅ Created missing element: ${id}`);
-                }
-                return div;
-            }
-    
-            const errorDiv = createDiv('link-error', 'text-danger mt-2');
-            const successDiv = createDiv('link-success', 'text-success mt-2');
-            const loadingDiv = createDiv('link-loading', 'text-primary mt-2', '⏳ Checking, please wait...');
-    
-            loadingDiv.style.display = 'none';
-    
-            const apiKeys = [
-                'b364a3b7bcmsh8682e33cffcf8b1p1bec05jsnfa78871c081a',
-                '9a4048e1d9msh8136af2c691900ep147e73jsn07756c58537d'
-            ];
-    
-            async function checkProfileStatus(username) {
-                console.log(`🔍 Checking API for username: ${username}`);
-                const url = `https://instagram-scraper-api2.p.rapidapi.com/v1/info?username_or_id_or_url=${username}`;
-    
-                loadingDiv.style.display = 'block';
-                successDiv.style.display = 'none';
-                errorDiv.style.display = 'none';
-    
-                async function fetchWithFallback() {
-                    for (let i = 0; i < apiKeys.length; i++) {
-                        console.log(`🔑 Using API Key ${i + 1}...`);
-                        const options = {
-                            method: 'GET',
-                            headers: {
-                                'x-rapidapi-key': apiKeys[i],
-                                'x-rapidapi-host': 'instagram-scraper-api2.p.rapidapi.com',
-                            },
-                        };
-    
-                        try {
-                            const response = await fetch(url, options);
-                            console.log(`📩 API Response Status: ${response.status}`);
-    
-                            if (response.status === 429) {
-                                console.warn(`⚠️ API Key ${i + 1} rate limit exceeded! Trying next key...`);
-                                continue;
-                            }
-    
-                            if (!response.ok) throw new Error('API request failed');
-                            return await response.json();
-                        } catch (error) {
-                            console.error(`❌ API Key ${i + 1} failed: ${error.message}`);
-                            if (i === apiKeys.length - 1) {
-                                loadingDiv.style.display = 'none';
-                                errorDiv.innerHTML = 'Error: Could not verify profile details. Try again later.';
-                                errorDiv.style.display = 'block';
-                                return null;
-                            }
-                        }
-                    }
-                    return null;
-                }
-    
-                const result = await fetchWithFallback();
-                loadingDiv.style.display = 'none';
-    
-                if (!result || !result.data) {
-                    console.warn('🚫 Could not retrieve profile details.');
-                    errorDiv.innerHTML = 'Error: Could not verify profile details. Try again later.';
-                    errorDiv.style.display = 'block';
-                    return;
-                }
-    
-                const isPrivate = result.data.is_private;
-                const spamFollowerEnabled = result.data.spam_follower_setting_enabled;
-    
-                console.log(`🔒 is_private: ${isPrivate}`);
-                console.log(`🚦 spam_follower_setting_enabled: ${spamFollowerEnabled}`);
-    
-                if (isPrivate === true) {
-                    console.warn('⚠️ Account is private.');
-                    errorDiv.innerHTML = 'Error: Make your account public before placing an order.';
-                    errorDiv.style.display = 'block';
-                    successDiv.style.display = 'none';
-                    linkInput.classList.add('is-invalid');
-                    linkInput.classList.remove('is-valid');
-                } else if (isPrivate === false && spamFollowerEnabled === true) {
-                    console.warn('⚠️ Flag for Review is ON.');
-                    errorDiv.innerHTML = 'Error: Flag for Review is ON. Please turn it off before placing an order.';
-                    errorDiv.style.display = 'block';
-                    successDiv.style.display = 'none';
-                    linkInput.classList.add('is-invalid');
-                    linkInput.classList.remove('is-valid');
-                } else {
-                    console.log('✅ Account is public & Flag for Review is OFF.');
-                    successDiv.innerHTML = 'Account is public & Flag for Review is OFF. You can place an order.';
-                    successDiv.style.display = 'block';
-                    errorDiv.style.display = 'none';
-                    linkInput.classList.remove('is-invalid');
-                    linkInput.classList.add('is-valid');
-                }
-            }
-    
+            const errorDiv = document.getElementById('link-error');
+            const successDiv = document.getElementById('link-success');
+            const loadingDiv = document.getElementById('link-loading');
+
             function extractUsername(url) {
                 const match = url.match(/instagram\.com\/([^/?]+)/);
-                const username = match ? match[1] : null;
-                console.log(`🔎 Extracted Username: ${username}`);
-                return username;
+                return match ? match[1] : null;
             }
-    
+
             function isProfileLink(url) {
-                return (
-                    url.includes('instagram.com') &&
+                return url.includes('instagram.com') &&
                     !url.includes('/reel/') &&
                     !url.includes('/p/') &&
                     !url.includes('/stories/') &&
-                    !url.includes('/share/')
-                );
+                    !url.includes('/share/');
             }
-    
-            linkInput.addEventListener('blur', function () {
-                let value = linkInput.value.trim();
-                console.log(`✏️ User input: ${value}`);
-    
+
+            async function checkProfileStatus(username) {
+                loadingDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+                errorDiv.style.display = 'none';
+
+                try {
+                    const response = await fetch(`/api/checkProfile.js?username=${encodeURIComponent(username)}`);
+                    const data = await response.json();
+                    loadingDiv.style.display = 'none';
+
+                    if (!data || !data.data) {
+                        errorDiv.innerText = 'Error: Invalid response from server.';
+                        errorDiv.style.display = 'block';
+                        linkInput.classList.add('is-invalid');
+                        return;
+                    }
+
+                    const isPrivate = data.data.is_private;
+                    const spamFilter = data.data.spam_follower_setting_enabled;
+
+                    if (isPrivate) {
+                        errorDiv.innerText = 'Error: Make your account public before placing an order.';
+                        errorDiv.style.display = 'block';
+                        linkInput.classList.add('is-invalid');
+                    } else if (spamFilter) {
+                        errorDiv.innerText = 'Error: Flag for Review is ON. Please turn it off before placing an order.';
+                        errorDiv.style.display = 'block';
+                        linkInput.classList.add('is-invalid');
+                    } else {
+                        successDiv.innerText = '✅ Account is public & Flag for Review is OFF. You can place an order.';
+                        successDiv.style.display = 'block';
+                        linkInput.classList.add('is-valid');
+                    }
+                } catch (err) {
+                    loadingDiv.style.display = 'none';
+                    errorDiv.innerText = 'Error: Unable to check profile. Please try again.';
+                    errorDiv.style.display = 'block';
+                }
+            }
+
+            linkInput.addEventListener('blur', () => {
+                const value = linkInput.value.trim();
                 errorDiv.style.display = 'none';
                 successDiv.style.display = 'none';
                 loadingDiv.style.display = 'none';
                 linkInput.classList.remove('is-valid', 'is-invalid');
-    
-                if (value === '') {
-                    console.log('⚠️ Empty input, skipping...');
-                    return;
-                }
-    
+
+                if (!value) return;
+
+                let cleanUrl = value;
                 if (value.includes('/profilecard/')) {
-                    const correctedUrl = value.split('/profilecard/')[0];
-                    console.log('🔄 Fixing Profilecard URL:', correctedUrl);
-                    linkInput.value = correctedUrl;
-    
-                    successDiv.innerHTML = 'Note: Your URL has been fixed! Checking account status...';
+                    cleanUrl = value.split('/profilecard/')[0];
+                    linkInput.value = cleanUrl;
+                    successDiv.innerText = 'Note: Profilecard URL fixed. Checking...';
                     successDiv.style.display = 'block';
-                    linkInput.classList.add('is-valid');
-    
-                    const username = extractUsername(correctedUrl);
-                    if (username) {
-                        checkProfileStatus(username);
-                    }
-                    return;
                 }
-    
-                if (!isProfileLink(value)) {
-                    console.log('✅ Valid link, no need to check profile status.');
-                    successDiv.innerHTML = 'Valid Link! No need to check "Flag for Review".';
+
+                if (!isProfileLink(cleanUrl)) {
+                    successDiv.innerText = 'Valid link! No profile check needed.';
                     successDiv.style.display = 'block';
                     linkInput.classList.add('is-valid');
                     return;
                 }
-    
-                const username = extractUsername(value);
-                if (username) {
-                    checkProfileStatus(username);
-                }
+
+                const username = extractUsername(cleanUrl);
+                if (username) checkProfileStatus(username);
             });
         });
     </script>
-    
-    
-    
 
-
-
-
-
-
-    <!-- Bootstrap JavaScript Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
-        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
-        crossorigin="anonymous"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
-        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
-        crossorigin="anonymous"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
 </body>
 
 </html>
